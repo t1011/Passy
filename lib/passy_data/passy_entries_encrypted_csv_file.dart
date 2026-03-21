@@ -381,7 +381,7 @@ class PassyEntriesEncryptedCSVFile<T extends PassyEntry<T>> {
       await _close(_raf);
       return;
     }
-    RandomAccessFile rafExport = await _open(_file, mode: FileMode.write);
+    RandomAccessFile rafExport = await _open(file, mode: FileMode.write);
     if (annotation != null) {
       await rafExport.writeString(annotation + '\n');
     }
