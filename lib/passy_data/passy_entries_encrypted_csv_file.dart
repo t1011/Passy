@@ -373,15 +373,18 @@ class PassyEntriesEncryptedCSVFile<T extends PassyEntry<T>> {
     }
   }
 
-  Future<void> export(File file,
+  Future<void> export(File exportFile,
       {String? annotation, bool skipKey = false}) async {
-    if (!await file.exists()) await file.create(recursive: true);
+    if (exportFile.absolute.path == _file.absolute.path) {
+      throw Exception("Export target cannot be the vault file.");
+    }
+    if (!await exportFile.exists()) await exportFile.create(recursive: true);
     RandomAccessFile _raf = await _open(_file);
     if (skipLine(_raf, lineDelimiter: ',') == -1) {
       await _close(_raf);
       return;
     }
-    RandomAccessFile rafExport = await _open(file, mode: FileMode.write);
+    RandomAccessFile rafExport = await _open(exportFile, mode: FileMode.write);
     if (annotation != null) {
       await rafExport.writeString(annotation + '\n');
     }
@@ -404,8 +407,8 @@ class PassyEntriesEncryptedCSVFile<T extends PassyEntry<T>> {
   Future<void> setEntries(Map<String, T?> entries) =>
       _transform(() => _setEntries(entries));
 
-  Future<void> exportKdbx(KdbxFile file, {KdbxGroup? group}) async {
-    final KdbxGroup groupFinal = group ?? file.body.rootGroup;
+  Future<void> exportKdbx(KdbxFile exportFile, {KdbxGroup? group}) async {
+    final KdbxGroup groupFinal = group ?? exportFile.body.rootGroup;
     RandomAccessFile _raf = await _open(_file);
     if (skipLine(_raf, lineDelimiter: ',') == -1) {
       await _close(_raf);
@@ -417,7 +420,7 @@ class PassyEntriesEncryptedCSVFile<T extends PassyEntry<T>> {
       String _decrypted = decrypt(_decoded[1],
           encrypter: _encrypter, iv: IV.fromBase64(_decoded[0]));
       PassyEntry<T> passyEntry = PassyEntry.fromCSVString<T>(_decrypted) as T;
-      final KdbxEntry kdbxEntry = KdbxEntry.create(file, groupFinal);
+      final KdbxEntry kdbxEntry = KdbxEntry.create(exportFile, groupFinal);
       for (PassyKdbxValue passyKdbxEntry in passyEntry.toKdbx().values) {
         kdbxEntry.setString(passyKdbxEntry.key, passyKdbxEntry.value);
       }
