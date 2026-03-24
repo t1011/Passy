@@ -64,10 +64,14 @@ class _ConnectScreen extends State<ConnectScreen> {
                         bottom: PassyTheme.of(context).passyPadding.bottom),
                     child: TextFormField(
                       initialValue: _address,
+                      autofocus: true,
                       decoration: InputDecoration(
                         labelText: localizations.hostAddress,
                       ),
                       onChanged: (s) => setState(() => _address = s),
+                      onFieldSubmitted: (_) =>
+                          SynchronizationWrapper(context: context)
+                              .connect(_account, address: _address),
                     ),
                   ),
                 ),
